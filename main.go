@@ -40,7 +40,7 @@ var logger *log.Logger
 var enabled *bool
 
 func init() {
-	logger = log.New(os.Stdout, "stopwatch", log.Lshortfile)
+	logger = log.New(os.Stdout, "stopwatch|", log.LstdFlags)
 	now := time.Now()
 
 	resetLock.Lock()
