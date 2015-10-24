@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"runtime"
 	"sync"
@@ -38,6 +39,10 @@ var (
 
 var logger *log.Logger
 var enabled *bool
+
+type HttpHandler struct {
+	handler http.Handler
+}
 
 func init() {
 	logger = log.New(os.Stdout, "stopwatch|", log.LstdFlags)
@@ -101,4 +106,16 @@ func output(now time.Time, printfFormat string) {
 
 	output := fmt.Sprintf("[%14s][%14s] %s at %s:%d", dReset, dPrev, infoline, file, line)
 	logger.Println(output)
+}
+
+func WrapHTTPHandler(handler http.Handler) http.Handler {
+	h := new(HttpHandler)
+	h.handler = handler
+	return h
+}
+
+func (h *HttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	Reset(fmt.Sprintf("########## <---- %s %s", r.Method, r.RequestURI))
+	defer Watch(fmt.Sprintf("########## ----> %s %s", r.Method, r.RequestURI))
+	h.handler.ServeHTTP(w, r)
 }
